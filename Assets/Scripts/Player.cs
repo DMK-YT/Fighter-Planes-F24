@@ -9,53 +9,54 @@ public class Player : MonoBehaviour
     //2. type: int (e.g., 2, 4, 123, 3456, etc.), float (e.g, 2.5, 3.67, etc.)
     //3. name: (1) start w/ lowercase (2) if it is multiple words, then the other words start with uppercase and written together
     //4. optional: give it an initial value
-
     private float horizontalInput;
     private float verticalInput;
     private float speed;
     private int lives;
-
     public GameObject bullet;
 
-    // Start is called before the first frame update
+    float xBorderValue = 11.5f;
+    float maximumValueY = 0;
+    float minimumValueY = -4f;
+
     void Start()
     {
         speed = 6f;
         lives = 3;
     }
 
-    // Update is called once per frame
     void Update()
     {
         Moving();
         Shooting();
     }
-
     void Moving()
     {
-        horizontalInput = Input.GetAxis("Horizontal");
-        verticalInput = Input.GetAxis("Vertical");
-        transform.Translate(new Vector3(horizontalInput, verticalInput, 0) * Time.deltaTime * speed);
+        horizontalInput = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
+        verticalInput = Input.GetAxis("Vertical") * Time.deltaTime * speed;
 
-        //if my x position is bigger than 11.5f than I am outside the screen from the right 
-        if (transform.position.x > 11.5f || transform.position.x <= -11.5f)
+        transform.position = new Vector3(transform.position.x + horizontalInput,
+            Mathf.Clamp(transform.position.y + verticalInput, minimumValueY, maximumValueY));
+
+        // I changed the way teleporting between sides of the screen works,
+        //  since a bug occurred where, if the player posiion exceeded either boundary, he'd get stuck in a loop of swapping sides.
+        if (transform.position.x > xBorderValue)
         {
-            transform.position = new Vector3(transform.position.x * -1, transform.position.y, 0);
+            transform.position = new Vector3(-xBorderValue, transform.position.y, 0);
         }
-
-        if (transform.position.y > 8f || transform.position.y <= -8f)
+        else if (transform.position.x < -xBorderValue)
         {
-            transform.position = new Vector3(transform.position.x, transform.position.y * -1, 0);
+            transform.position = new Vector3(xBorderValue, transform.position.y, 0);
         }
     }
-
     void Shooting()
     {
         //if SPACE key is pressed create a bullet; what is a bullet?
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //create a bullet object at my position with my rotation
-            Instantiate(bullet, transform.position + new Vector3(0, 1, 0), Quaternion.identity); 
+            Instantiate(bullet, transform.position + new Vector3(0, 1, 0),
+            Quaternion.identity);
         }
     }
 
